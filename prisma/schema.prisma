@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id         Int          @id @default(autoincrement())
+  nome       String
+  email      String       @unique
+  telefone   String
+  senha      String
+  tipo       TipoUsuario
+  treinos    Treino[]
+  contatos   Contato[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  Comentario Comentario[]
+}
+
+model Contato {
+  id        Int         @id @default(autoincrement())
+  tipo      TipoContato
+  numero    String
+  usuarioId Int
+  usuario   Usuario     @relation(fields: [usuarioId], references: [id])
+}
+
+enum TipoContato {
+  CELULAR
+  RESIDENCIAL
+  COMERCIAL
+}
+
+enum TipoUsuario {
+  USUARIO
+  ADMINISTRADOR
+  PERSONAL
+}
+
+model Categoria {
+  id         Int         @id @default(autoincrement())
+  nome       String      @unique
+  exercicios Exercicio[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Exercicio {
+  id          Int               @id @default(autoincrement())
+  nome        String
+  categoriaId Int
+  categoria   Categoria         @relation(fields: [categoriaId], references: [id])
+  series      Serie[]
+  treinos     TreinoExercicio[]
+  comentarios Comentario[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Serie {
+  id          Int       @id @default(autoincrement())
+  repeticoes  Int
+  peso        Float?
+  exercicioId Int
+  exercicio   Exercicio @relation(fields: [exercicioId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Treino {
+  id               Int               @id @default(autoincrement())
+  descricao        String?
+  usuarioId        Int
+  usuario          Usuario           @relation(fields: [usuarioId], references: [id])
+  treinosExercicio TreinoExercicio[]
+  status           StatusTreino
+  dataInicio       DateTime?
+  dataTermino      DateTime?
+  comentarios      Comentario[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model TreinoExercicio {
+  id          Int       @id @default(autoincrement())
+  treinoId    Int
+  exercicioId Int
+  treino      Treino    @relation(fields: [treinoId], references: [id])
+  exercicio   Exercicio @relation(fields: [exercicioId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Comentario {
+  id          Int        @id @default(autoincrement())
+  texto       String
+  usuarioId   Int
+  usuario     Usuario    @relation(fields: [usuarioId], references: [id])
+  treinoId    Int?
+  treino      Treino?    @relation(fields: [treinoId], references: [id])
+  exercicioId Int?
+  exercicio   Exercicio? @relation(fields: [exercicioId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum StatusTreino {
+  ATIVO
+  CONCLUIDO
+  CANCELADO
+}
